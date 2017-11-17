@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable class-methods-use-this */
-const { LimitedArray, getIndexBelowMax } = require('./hash-table-helpers');
+const { LimitedArray, getIndexBelowMax, LinkedList } = require('./hash-table-helpers');
 
 class HashTable {
   constructor(limit = 8) {
@@ -13,19 +13,17 @@ class HashTable {
     this.limit *= 2;
     const oldStorage = this.storage;
     this.storage = new LimitedArray(this.limit);
-    oldStorage.each((bucket) => {
-      if (!bucket) return;
-      bucket.forEach((pair) => {
-        this.insert(pair[0], pair[1]);
-      });
+    oldStorage.storage.forEachNode((node) => {
+      this.insert(node.key, node.value);
     });
   }
 
   capacityIsFull() {
     let fullCells = 0;
-    this.storage.each((bucket) => {
-      if (bucket !== undefined) fullCells++;
+    this.storage.storage.forEachNode(() => {
+      fullCells++;
     });
+    c
     return fullCells / this.limit >= 0.75;
   }
 
@@ -36,10 +34,13 @@ class HashTable {
   insert(key, value) {
     if (this.capacityIsFull()) this.resize();
     const index = getIndexBelowMax(key.toString(), this.limit);
-    let bucket = this.storage.get(index) || [];
+    const bucket = this.storage.get(index) || new LinkedList();
 
-    bucket = bucket.filter(item => item[0] !== key);
-    bucket.push([key, value]);
+    if (bucket.containsKey(key)) {
+      bucket.changeValue(key, value);
+    } else {
+      bucket.push(key, value);
+    }
     this.storage.set(index, bucket);
   }
   // Removes the key, value pair from the hash table
@@ -47,10 +48,14 @@ class HashTable {
   // Remove the key, value pair from the bucket
   remove(key) {
     const index = getIndexBelowMax(key.toString(), this.limit);
-    let bucket = this.storage.get(index);
-
+    const bucket = this.storage.get(index);
     if (bucket) {
-      bucket = bucket.filter(item => item[0] !== key);
+      bucket.forEachNode((node) => {
+        if (node.key === key) {
+          node.key = undefined;
+          node.value = undefined;
+        }
+      });
       this.storage.set(index, bucket);
     }
   }
@@ -62,10 +67,13 @@ class HashTable {
     const bucket = this.storage.get(index);
     let retrieved;
     if (bucket) {
-      retrieved = bucket.filter(item => item[0] === key)[0];
+      bucket.forEachNode((node) => {
+        if (node.key === key) {
+          retrieved = node.value;
+        }
+      });
     }
-
-    return retrieved ? retrieved[1] : undefined;
+    return retrieved || undefined;
   }
 }
 

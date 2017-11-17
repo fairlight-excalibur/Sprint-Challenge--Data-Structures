@@ -1,9 +1,93 @@
 // A special array class that can only store the number of items specified by the `limit` argument
+class Node {
+  constructor(key, value) {
+    this.key = key;
+    this.value = value;
+    this.head = null;
+    this.tail = null;
+  }
+}
+
+class LinkedList {
+  constructor() {
+    this.head = null;
+    this.tail = null;
+    // Do not modify anything inside of the constructor
+  }
+
+  forEachNode(cb) {
+    let currentNode = this.head;
+    while (currentNode) {
+      cb(currentNode);
+      currentNode = currentNode.tail;
+    }
+  }
+  // Wraps the given value in a node object and adds the node to the tail of the list
+  // If the list is empty, the new element is considered the tail as well as the head
+  // If there is one element in the list before the new element is added, the new element becomes the tail of the list
+  push(key, value) {
+    const newNode = new Node(key, value);
+    if (this.tail === null && this.head === null) {
+      this.tail = newNode;
+      this.head = newNode;
+    } else if (this.tail === null) {
+      newNode.head = this.tail;
+      this.tail = newNode;
+    } else {
+      this.tail.tail = newNode;
+      this.tail = newNode;
+    }
+  }
+  // Removes the current head node from the list, replacing it with the next element in the list
+  // Returns the value of the removed node
+  removeHead() {
+    if (this.head !== null) {
+      const headVal = this.head.value;
+      this.head = this.head.tail;
+      return headVal;
+    }
+    return null;
+  }
+  // Checks the linked list for the given value
+  // Returns true if the the value is found in the list, false otherwise
+  contains(key, value) {
+    let currentNode = this.head;
+    while (currentNode !== null) {
+      if (currentNode.value === value && currentNode.key === key) {
+        return true;
+      }
+      currentNode = currentNode.tail;
+    }
+    return false;
+  }
+
+  containsKey(key) {
+    let currentNode = this.head;
+    while (currentNode !== null) {
+      if (currentNode.key === key) {
+        return true;
+      }
+      currentNode = currentNode.tail;
+    }
+    return false;
+  }
+
+  changeValue(key, newValue) {
+    let currentNode = this.head;
+    while (currentNode !== null) {
+      if (currentNode.key === key) {
+        currentNode.value = newValue;
+      }
+      currentNode = currentNode.tail;
+    }
+  }
+}
+
 class LimitedArray {
   constructor(limit) {
     // You should not be directly accessing this array from your hash table methods
     // Use the getter and setter methods included in this class to manipulate data in this class
-    this.storage = [];
+    this.storage = new LinkedList();
     this.limit = limit;
   }
 
@@ -52,4 +136,5 @@ const getIndexBelowMax = (str, max) => {
 module.exports = {
   LimitedArray,
   getIndexBelowMax,
+  LinkedList,
 };
